@@ -1,97 +1,149 @@
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+# react-native-image-picker 🎆
 
-# Getting Started
+A React Native module that allows you to select a photo/video from the device library or camera.
 
-> **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
+[![npm downloads](https://img.shields.io/npm/dw/react-native-image-picker)](https://img.shields.io/npm/dw/react-native-image-picker)
+[![npm package](https://img.shields.io/npm/v/react-native-image-picker?color=red)](https://img.shields.io/npm/v/react-native-image-picker?color=red)
+[![License](https://img.shields.io/github/license/react-native-image-picker/react-native-image-picker?color=blue)](https://github.com/react-native-image-picker/react-native-image-picker/blob/main/LICENSE.md)
 
-## Step 1: Start Metro
+## Installation
 
-First, you will need to run **Metro**, the JavaScript build tool for React Native.
-
-To start the Metro dev server, run the following command from the root of your React Native project:
-
-```sh
-# Using npm
-npm start
-
-# OR using Yarn
-yarn start
+```bash
+yarn add @pedro.gabriel/react-native-image-picker
 ```
 
-## Step 2: Build and run your app
+#### iOS
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
-
-### Android
-
-```sh
-# Using npm
-npm run android
-
-# OR using Yarn
-yarn android
+```bash
+RCT_NEW_ARCH_ENABLED=1 npx pod-install ios
 ```
+
+
+### Pre-Fabric (AKA not using the new architecture)
+
+```bash
+npx pod-install ios
+```
+
+## Post-install Steps
 
 ### iOS
 
-For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
+Add the appropriate keys to your `Info.plist` depending on your requirement:
 
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
+| Requirement                    | Key                                                     |
+| ------------------------------ | ------------------------------------------------------- |
+| Select image/video from photos | NSPhotoLibraryUsageDescription                          |
+| Capture Image                  | NSCameraUsageDescription                                |
+| Capture Video                  | NSCameraUsageDescription & NSMicrophoneUsageDescription |
 
-```sh
-bundle install
+### Android
+
+No permissions required (`saveToPhotos` requires permission [check](#note-on-file-storage)).
+
+Note: This library does not require `Manifest.permission.CAMERA`, if your app declares as using this permission in manifest then you have to obtain the permission before using `launchCamera`.
+
+## API Reference
+
+## Methods
+
+```js
+import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
 ```
 
-Then, and every time you update your native dependencies, run:
+### `launchCamera()`
 
-```sh
-bundle exec pod install
+Launch camera to take photo or video.
+
+```js
+launchCamera(options?, callback);
+
+// You can also use as a promise without 'callback':
+const result = await launchCamera(options?);
 ```
 
-For more information, please visit [CocoaPods Getting Started guide](https://guides.cocoapods.org/using/getting-started.html).
+See [Options](#options) for further information on `options`.
 
-```sh
-# Using npm
-npm run ios
+The `callback` will be called with a response object, refer to [The Response Object](#the-response-object).
 
-# OR using Yarn
-yarn ios
+### `launchImageLibrary`
+
+Launch gallery to pick image or video.
+
+```js
+launchImageLibrary(options?, callback)
+
+// You can also use as a promise without 'callback':
+const result = await launchImageLibrary(options?);
 ```
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+See [Options](#options) for further information on `options`.
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+The `callback` will be called with a response object, refer to [The Response Object](#the-response-object).
 
-## Step 3: Modify your app
+## Options
 
-Now that you have successfully run the app, let's make changes!
+| Option                  | iOS | Android | Web | Description                                                                                                                                                                                                                                |
+| ----------------------- | --- | ------- | --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| mediaType               | OK  | OK      | OK  | `photo` or `video` or `mixed`(`launchCamera` on Android does not support 'mixed'). Web only supports 'photo' for now.                                                                                                                      |
+| restrictMimeTypes       | NO  | OK      | NO  | Array containing the mime-types allowed to be picked. Default is empty (everything).                                                                                                                                                       |
+| maxWidth                | OK  | OK      | NO  | To resize the image.                                                                                                                                                                                                                       |
+| maxHeight               | OK  | OK      | NO  | To resize the image.                                                                                                                                                                                                                       |
+| videoQuality            | OK  | OK      | NO  | `low`, `medium`, or `high` on iOS, `low` or `high` on Android.                                                                                                                                                                             |
+| durationLimit           | OK  | OK      | NO  | Video max duration (in seconds).                                                                                                                                                                                                           |
+| quality                 | OK  | OK      | NO  | 0 to 1, photos.                                                                                                                                                                                                                            |
+| conversionQuality       | NO  | OK      | NO  | For conversion from HEIC/HEIF to JPEG, 0 to 1. Default is `0.92`                                                                                                                                                                           |
+| cameraType              | OK  | OK      | NO  | 'back' or 'front' (May not be supported in few android devices).                                                                                                                                                                           |
+| includeBase64           | OK  | OK      | OK  | If `true`, creates base64 string of the image (Avoid using on large image files due to performance).                                                                                                                                       |
+| includeExtra            | OK  | OK      | NO  | If `true`, will include extra data which requires library permissions to be requested (i.e. exif data).                                                                                                                                    |
+| saveToPhotos            | OK  | OK      | NO  | (Boolean) Only for `launchCamera`, saves the image/video file captured to public photo.                                                                                                                                                    |
+| selectionLimit          | OK  | OK      | OK  | Supports providing any integer value. Use `0` to allow any number of files on iOS version >= 14 & Android version >= 13. Default is `1`.                                                                                                   |
+| presentationStyle       | OK  | NO      | NO  | Controls how the picker is presented. `currentContext`, `pageSheet`, `fullScreen`, `formSheet`, `popover`, `overFullScreen`, `overCurrentContext`. Default is `currentContext`.                                                            |
+| formatAsMp4             | OK  | NO      | NO  | Converts the selected video to MP4 (iOS Only).                                                                                                                                                                                             |
+| assetRepresentationMode | OK  | OK      | NO  | A mode that determines which representation to use if an asset contains more than one on iOS or disables HEIC/HEIF to JPEG conversion on Android if set to 'current'. Possible values: 'auto', 'current', 'compatible'. Default is 'auto'. |
 
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
+|
 
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
+## The Response Object
 
-- **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
-- **iOS**: Press <kbd>R</kbd> in iOS Simulator.
+| key          | iOS | Android | Web | Description                                                         |
+| ------------ | --- | ------- | --- | ------------------------------------------------------------------- |
+| didCancel    | OK  | OK      | OK  | `true` if the user cancelled the process                            |
+| errorCode    | OK  | OK      | OK  | Check [ErrorCode](#ErrorCode) for all error codes                   |
+| errorMessage | OK  | OK      | OK  | Description of the error, use it for debug purpose only             |
+| assets       | OK  | OK      | OK  | Array of the selected media, [refer to Asset Object](#Asset-Object) |
 
-## Congratulations! :tada:
+## Asset Object
 
-You've successfully run and modified your React Native App. :partying_face:
+| key          | iOS | Android | Web | Photo/Video | Requires Permissions | Description                                                                                                                                                                                                                                                                    |
+| ------------ | --- | ------- | --- | ----------- | -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| base64       | OK  | OK      | OK  | PHOTO ONLY  | NO                   | The base64 string of the image (photos only)                                                                                                                                                                                                                                   |
+| uri          | OK  | OK      | OK  | BOTH        | NO                   | The file uri in app specific cache storage. Except when picking **video from Android gallery** where you will get read only content uri, to get file uri in this case copy the file to app specific storage using any react-native library. For web it uses the base64 as uri. |
+| originalPath | NO  | OK      | NO  | BOTH        | NO                   | The original file path.                                                                                                                                                                                                                                                        |
+| width        | OK  | OK      | OK  | BOTH        | NO                   | Asset dimensions                                                                                                                                                                                                                                                               |
+| height       | OK  | OK      | OK  | BOTH        | NO                   | Asset dimensions                                                                                                                                                                                                                                                               |
+| fileSize     | OK  | OK      | NO  | BOTH        | NO                   | The file size                                                                                                                                                                                                                                                                  |
+| type         | OK  | OK      | NO  | BOTH        | NO                   | The file type                                                                                                                                                                                                                                                                  |
+| fileName     | OK  | OK      | NO  | BOTH        | NO                   | The file name                                                                                                                                                                                                                                                                  |
+| duration     | OK  | OK      | NO  | VIDEO ONLY  | NO                   | The selected video duration in seconds                                                                                                                                                                                                                                         |
+| bitrate      | --- | OK      | NO  | VIDEO ONLY  | NO                   | The average bitrate (in bits/sec) of the selected video, if available. (Android only)                                                                                                                                                                                          |
+| timestamp    | OK  | OK      | NO  | BOTH        | YES                  | Timestamp of the asset. Only included if 'includeExtra' is true                                                                                                                                                                                                                |
+| id           | OK  | OK      | NO  | BOTH        | YES                  | local identifier of the photo or video. On Android, this is the same as fileName                                                                                                                                                                                               |
 
-### Now what?
+## Note on file storage
 
-- If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
-- If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
+Image/video captured via camera will be stored in temporary folder allowing it to be deleted any time, so don't expect it to persist. Use `saveToPhotos: true` (default is `false`) to save the file in the public photos. `saveToPhotos` requires `WRITE_EXTERNAL_STORAGE` permission on Android 28 and below (The permission has to obtained by the App manually as the library does not handle that).
 
-# Troubleshooting
+For web, this doesn't work.
 
-If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
+## ErrorCode
 
-# Learn More
+| Code               | Description                                       |
+| ------------------ | ------------------------------------------------- |
+| camera_unavailable | Camera not available on device                    |
+| permission         | Permission not satisfied                          |
+| others             | Other errors (check errorMessage for description) |
 
-To learn more about React Native, take a look at the following resources:
+## License
 
-- [React Native Website](https://reactnative.dev) - learn more about React Native.
-- [Getting Started](https://reactnative.dev/docs/environment-setup) - an **overview** of React Native and how setup your environment.
-- [Learn the Basics](https://reactnative.dev/docs/getting-started) - a **guided tour** of the React Native **basics**.
-- [Blog](https://reactnative.dev/blog) - read the latest official React Native **Blog** posts.
-- [`@facebook/react-native`](https://github.com/facebook/react-native) - the Open Source; GitHub **repository** for React Native.
+[MIT](LICENSE.md)
