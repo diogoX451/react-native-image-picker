@@ -59,7 +59,7 @@ import {launchCamera, launchImageLibrary} from '@pedro.gabriel/react-native-imag
 Launch camera to take photo or video.
 
 ```js
-launchCamera(options?, callback);
+launchCamera(options?);
 
 // You can also use as a promise without 'callback':
 const result = await launchCamera(options?);
@@ -74,7 +74,7 @@ The `callback` will be called with a response object, refer to [The Response Obj
 Launch gallery to pick image or video.
 
 ```js
-launchImageLibrary(options?, callback)
+launchImageLibrary(options?)
 
 // You can also use as a promise without 'callback':
 const result = await launchImageLibrary(options?);
